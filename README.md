@@ -1,6 +1,16 @@
 # CFT-RFcardi
 
+## Run the Model
+You can find the arguments and settings in:
 
+```shell
+RFcardi_Transfer_Learning/Projects/radarODE_transfer/main.py
+```
+
+A validation example is in 
+```shell
+RFcardi_Transfer_Learning/Projects/radarODE_transfer/utils/visualization.ipynb
+```
 
 ## Dataset Download and Preparation
 
