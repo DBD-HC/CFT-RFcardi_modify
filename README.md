@@ -37,8 +37,10 @@ Dataset for RFcardi training (including spectrogram of radar inputs (sst), ECG g
 ```shell
 https://pan.baidu.com/s/1AO2Hs3ucRskONVo_xBgCog?pwd=3v39
 ```
-
-The link for Google Drive will be provided soon.
+or
+```shell
+https://drive.google.com/file/d/1i0lZghlh_cT6JN0vsXCl66FX0eeETEfs/view?usp=sharing
+```
 
 Dataset for the CFT reuqires the orignal radar output. A quick validation can be performed using example data
 ```shell
