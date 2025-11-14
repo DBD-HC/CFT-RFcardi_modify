@@ -2,9 +2,20 @@
 
 Official implementation of:
 
-[From High-SNR Radar Signal to ECG: A Transfer Learning Model with Cardio-Focusing Algorithm for Scenarios with Limited Data](https://arxiv.org/abs/2506.19358)
+[From High-SNR Radar Signal to ECG: A Transfer Learning Model with Cardio-Focusing Algorithm for Scenarios with Limited Data](https://ieeexplore.ieee.org/document/11216086)
 
+## Citation
 
+If you find our work helpful for your research, please cite our paper:
+```
+@article{zhang2024radarODE,
+  title={{From high-SNR radar signal to ECG: A transfer learning model with cardio-focusing algorithm for scenarios with limited data}}, 
+  author={Yuanyuan Zhang and Haocheng Zhao and Sijie Xiong and Rui Yang and Eng Gee Lim and Yutao Yue },
+  journal={IEEE Transactions on Mobile Computing},
+  year={2025},
+  publisher={IEEE},
+  month={Oct.}
+}
 
 ## Run the Model
 You can find the arguments and settings in:

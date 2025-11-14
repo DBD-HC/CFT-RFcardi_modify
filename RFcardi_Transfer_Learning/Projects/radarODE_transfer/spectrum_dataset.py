@@ -37,7 +37,7 @@ def get_all_files_in_directory_2(directory):
     file_paths = []
     # 使用os.walk遍历目录及其子目录
     for root, dirs, files in os.walk(directory):
-        for i in range(len(files) // 4):
+        for i in range(len(files) // 6):
             sst_ecg_pair = []
             # find in files contain 'string data_sst_{i}'
             files_path = [os.path.join(root, file) for file in files if re.search(f'_{i+1}_start_', file)]
@@ -144,7 +144,7 @@ def dataset_concat(ID_selected, data_root, aug_snr = 100):
 if __name__ == '__main__':
     root = '/home/zhangyuanyuan/Dataset/data_MMECG/data_seg_transfer/'
     root_2 = '/home/zhangyuanyuan/Dataset/data_RFcardi/'
-    ID = np.arange(13,14)
+    ID = np.arange(0,80)
     # dataset = dataset_concat(ID, root, aug_snr = 100)
     dataset = dataset_concat(ID, root_2, aug_snr = 100)
     print(ID, len(dataset))
