@@ -32,7 +32,7 @@ RFcardi_Transfer_Learning/Projects/radarODE_transfer/utils/visualization.ipynb
 
 ## Dataset Download and Preparation
 
-Dataset for RFcardi training (including spectrogram of radar inputs (sst), ECG ground truth and sparse signal ground truth (anchor))
+Ready-to-run dataset for RFcardi training (including spectrogram of radar inputs (sst), ECG ground truth and sparse signal ground truth (anchor))
 
 ```shell
 https://pan.baidu.com/s/1AO2Hs3ucRskONVo_xBgCog?pwd=3v39
