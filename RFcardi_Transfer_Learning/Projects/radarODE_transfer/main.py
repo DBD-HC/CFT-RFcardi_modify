@@ -6,17 +6,17 @@ import numpy as np
 BASE_DIR = ((os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 sys.path.append(BASE_DIR)
 print(BASE_DIR)
-from LibMTL.config import LibMTL_args, prepare_args
-from LibMTL.utils import set_random_seed, set_device
-from LibMTL.model import resnet_dilated
-from LibMTL import Trainer
-from Projects.radarODE_transfer.utils.utils import shapeMetric, shapeLoss, ppiMetric, ppiLoss, anchorMetric, anchorLoss
+from RFcardi_Transfer_Learning.LibMTL.config import LibMTL_args, prepare_args
+from RFcardi_Transfer_Learning.LibMTL.utils import set_random_seed, set_device
+from RFcardi_Transfer_Learning.LibMTL.model import resnet_dilated
+from RFcardi_Transfer_Learning.LibMTL import Trainer
+from RFcardi_Transfer_Learning.Projects.radarODE_transfer.utils.utils import shapeMetric, shapeLoss, ppiMetric, ppiLoss, anchorMetric, anchorLoss
 
 from spectrum_dataset import dataset_concat
 from nets.PPI_decoder import PPI_decoder
 from nets.anchor_decoder import anchor_decoder
 from nets.model import backbone, shapeDecoder
-from config import prepare_args
+from RFcardi_Transfer_Learning.config import prepare_args
 import argparse
 
 
