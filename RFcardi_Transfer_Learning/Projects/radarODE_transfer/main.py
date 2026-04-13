@@ -3,20 +3,22 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
+from RFcardi_Transfer_Learning.Projects.radarODE_transfer.mmecg_dataset import MMECGDataSpliter
+
 BASE_DIR = ((os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 sys.path.append(BASE_DIR)
 print(BASE_DIR)
-from LibMTL.config import LibMTL_args, prepare_args
-from LibMTL.utils import set_random_seed, set_device
-from LibMTL.model import resnet_dilated
-from LibMTL import Trainer
-from Projects.radarODE_transfer.utils.utils import shapeMetric, shapeLoss, ppiMetric, ppiLoss, anchorMetric, anchorLoss
+from RFcardi_Transfer_Learning.LibMTL.config import LibMTL_args, prepare_args
+from RFcardi_Transfer_Learning.LibMTL.utils import set_random_seed, set_device
+from RFcardi_Transfer_Learning.LibMTL.model import resnet_dilated
+from RFcardi_Transfer_Learning.LibMTL import Trainer
+from RFcardi_Transfer_Learning.Projects.radarODE_transfer.utils.utils import shapeMetric, shapeLoss, ppiMetric, ppiLoss, anchorMetric, anchorLoss
 
 from spectrum_dataset import dataset_concat
 from nets.PPI_decoder import PPI_decoder
 from nets.anchor_decoder import anchor_decoder
 from nets.model import backbone, shapeDecoder
-from config import prepare_args
+from RFcardi_Transfer_Learning.config import prepare_args
 import argparse
 
 
@@ -37,47 +39,51 @@ def parse_args(parser):
     return parser.parse_args()
 
 
-def main(params, hyper,portion):
+def main(params, hyper, portion, radarODE_train_set=None, radarODE_test_set=None):
     kwargs, optim_param, scheduler_param = prepare_args(params)
-    id = int(portion/100*80)
-    trian_id = id
+    if portion is not None:
+        id = int(portion/100*80)
+        trian_id = id
 
-    ID_all = np.arange(1, trian_id)
-    ID_test = np.array([1,2,3,4,5,6,7,8,9,10])
-    ID_train = np.delete(ID_all, ID_test-1)
-    print('ID_test', ID_test,"ID_train", trian_id)
+        ID_all = np.arange(1, trian_id)
+        ID_test = np.array([1,2,3,4,5,6,7,8,9,10])
+        ID_train = np.delete(ID_all, ID_test-1)
+        print('ID_test', ID_test,"ID_train", trian_id)
 
-    # witout data augmentation
-    radarODE_train_set = dataset_concat(
-        ID_selected=ID_train, data_root=params.dataset_path, aug_snr=params.aug_snr)
-    radarODE_test_set = dataset_concat(
-        ID_selected=ID_test, data_root=params.dataset_path)
-
+        # witout data augmentation
+        radarODE_train_set = dataset_concat(
+            ID_selected=ID_train, data_root=params.dataset_path, aug_snr=params.aug_snr)
+        radarODE_test_set = dataset_concat(
+            ID_selected=ID_test, data_root=params.dataset_path)
 
     trainloader = torch.utils.data.DataLoader(
         dataset=radarODE_train_set, batch_size=params.train_bs, shuffle=True, num_workers=8, pin_memory=True, drop_last=True)
     testloader = torch.utils.data.DataLoader(
         dataset=radarODE_test_set, batch_size=params.test_bs, shuffle=True, num_workers=8, pin_memory=True, drop_last=True)
 
-    # define tasks
-    task_dict = {
-                # for fine-tuning, comment out during pre-training
-                'ECG_shape': {'metrics': ['norm_MSE', 'MSE', 'CE'],
-                               'metrics_fn': shapeMetric(),
-                               'loss_fn': shapeLoss(),
-                               'weight': [0, 0, 0]},    
-                # # for SSL stage, comment out during fine-tuning                    
-                #  'Anchor': {'metrics': ["mse", 'sparseness'],
-                #             'metrics_fn': anchorMetric(),
-                #             'loss_fn': anchorLoss(),
-                #             'weight': [0]}
-                            }
+    if params.is_pretrain:
+        # define tasks
+        task_dict = {
+            'Anchor': {'metrics': ["mse", 'sparseness'],
+                       'metrics_fn': anchorMetric(),
+                       'loss_fn': anchorLoss(),
+                       'weight': [0]}
+        }
+    else:
+        # define tasks
+        task_dict = {
+                    # for fine-tuning, comment out during pre-training
+                    'ECG_shape': {'metrics': ['norm_MSE', 'MSE', 'CE'],
+                                   'metrics_fn': shapeMetric(),
+                                   'loss_fn': shapeLoss(),
+                                   'weight': [0, 0, 0]},
+                                }
 
     # # define backbone and en/decoders
     backbone_out_channels = hyper
-    def encoder_class(): 
+    def encoder_class():
         return backbone(in_channels=10, out_channels=backbone_out_channels)
-    
+
     num_out_channels = {'PPI': 260, 'Anchor': 800}
     decoders = nn.ModuleDict({'ECG_shape': shapeDecoder(in_channels=backbone_out_channels),
                               'Anchor': anchor_decoder(dim=backbone_out_channels)
@@ -128,9 +134,9 @@ if __name__ == "__main__":
     learning_rate = 5e-3
     lr_scheduler = 'cos'
     optimizer = 'sgd'
-    weight_decay=5e-4  
+    weight_decay=5e-4
     momentum=0.937
-    eta_min=learning_rate * 0.01 
+    eta_min=learning_rate * 0.01
     T_max=100
     params = parse_args(LibMTL_args)
     params.gpu_id = '0'
@@ -152,12 +158,36 @@ if __name__ == "__main__":
     params.scheduler = lr_scheduler
     params.eta_min, params.T_max = eta_min, T_max
     params.mode = 'train'
+    params.is_pretrain = True
     channel = 512
     portion = 100 # how many percentage of dataset for training
-    # params.save_name = f'SSL_{portion}_'
-    params.save_name = f'Super_{portion}_mse'
+    params.save_name = f'SSL_{portion}_'
+    # params.save_name = f'Super_{portion}_mse'
     # params.load_path= f'/home/zhangyuanyuan/radarODE-Transfer/Model_saved/best_SSL_100_spar.pt' # load pre-trained model if needed
     # params.save_name = f'FS_40_{method}_tt' # 100-portion for the percentage of labelled data
-    main(params,channel,portion)
+
+    user = [i for i in range(11)]
+    pcc_list = []
+    long_term_pcc_list = []
+
+    data_spliter = MMECGDataSpliter(rand_ref=True)
+
+    if params.is_pretrain:
+        domain = 0
+        train_dataset, _, test_dataset = data_spliter.split_data(domain, train_idx=[i for i in range(4)],
+                                                                 test_idx=[4], need_val=False)
+        main(params, channel, portion=None, radarODE_train_set=train_dataset, radarODE_test_set=test_dataset)
+    else:
+        domain = 1
+        for test_user in user:
+            if test_user < 0:
+                continue
+            train_users = [j for j in user if j != test_user]
+            # pre_trained_mpath = f'/root/autodl-tmp/jepa/checkpoints/d{domain}_tu{test_user}/checkpoint_epoch.pth'
+            # pre_trained_mpath = f'/root/autodl-tmp/jepa/checkpoints/d1_tu1/checkpoint_epoch.pth'
+            # ap.add_argument('--encoder-ckpt', type=str, default=pre_trained_mpath)
+            train_dataset, val_dataset, test_dataset = data_spliter.split_data(domain, train_users, [test_user],
+                                                                               need_val=True)
+            main(params,channel, portion=None, radarODE_train_set=train_dataset, radarODE_test_set=test_dataset)
 
 
