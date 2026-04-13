@@ -1,11 +1,12 @@
 import os
 
+import h5py
 import numpy as np
 import torch
 from torch.utils.data.dataset import Dataset
 from tqdm import tqdm
 import visdom
-
+import scipy.io as sio
 from RFcardi_Transfer_Learning.Projects.radarODE_transfer.base_dataset import DataSpliter
 from RFcardi_Transfer_Learning.Projects.radarODE_transfer.spectrum_dataset import down_sample, add_gaussian_sst, \
     add_abrupt_sst
@@ -253,6 +254,29 @@ def split_mmecg_raw_data(data_root='/root/autodl-tmp/dataset/mmecg'):
     np.save(os.path.join(data_root, 'samples', 'radarode_sample2file_info.npy'), file_sample_info)
     print(f'status {status_set}')
     print(f'user {uid_set}')
+
+
+def load_mat_auto(path):
+    """
+    自动检测 MATLAB .mat 文件版本并读取
+    - v7 及以下：使用 scipy.io.loadmat
+    - v7.3 (HDF5 格式)：使用 h5py
+    """
+    # 先读取文件头前 128 个字节，里面包含版本信息
+    with open(path, 'rb') as f:
+        header = f.read(128)
+
+    # MATLAB v7.3 的文件头里包含 "MATLAB 7.3 MAT-file"
+    if b'MATLAB 7.3' in header:
+        # print("[INFO] Detected MATLAB v7.3 (HDF5) format, using h5py...")
+        data = {}
+        with h5py.File(path, 'r') as f:
+            for k in f.keys():
+                data[k] = f[k][()]
+        return data
+    else:
+        # print("[INFO] Detected MATLAB v7 or lower format, using scipy.io.loadmat...")
+        return sio.loadmat(path)
 
 def resave_sst(data_root='/root/autodl-tmp/dataset/mmecg/sst/30Hz_half_01'):
     filenames = os.listdir(data_root)
