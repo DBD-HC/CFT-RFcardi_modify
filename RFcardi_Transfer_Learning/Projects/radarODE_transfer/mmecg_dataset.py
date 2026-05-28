@@ -41,7 +41,7 @@ class BaseDataset2(Dataset):
         filename_key = info[0] + '_' + info[1]
         sample2file = self.sample2ecg_inf[filename_key][int(info[-1])]
         es, et, ss, st = sample2file['re_s'], sample2file['re_t'], sample2file['sst_s'], sample2file['sst_t']
-        ecg_filename = sample2file['ecg_fn']
+        ecg_filename = sample2file['ecg_align_fn']
         sst_filename = sample2file['sst_fn']
         anchor_filename = sample2file['anchor_fn']
         return sst_filename, ecg_filename, anchor_filename, es, et, ss, st
@@ -110,9 +110,9 @@ class MMECGDataset(BaseDataset2):
         sst, ref, anchor = self.preprocessing_radar(sst), self.preprocessing_ref(ref), self.preprocessing_anchor(anchor)
 
         # ppi_info = np.pad(ref, (0, target_len - ref.shape[-1]), 'constant', constant_values=-10)
-        ecg_target = down_sample(ref, target_len=200)[None, :]
+        # ecg_target = down_sample(ref, target_len=200)[None, :]
         sst = torch.from_numpy(sst).type(torch.float32)
-        ecg_target = torch.from_numpy(ecg_target).type(torch.float32)
+        ecg_target = torch.from_numpy(ref).type(torch.float32)
         anchor = torch.from_numpy(anchor).type(torch.float32)
         return sst, {'ECG_shape': ecg_target, 'Anchor': anchor}
 
